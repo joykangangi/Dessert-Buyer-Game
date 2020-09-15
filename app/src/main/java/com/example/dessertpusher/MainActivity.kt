@@ -11,10 +11,14 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.LifecycleObserver
 import com.example.dessertpusher.databinding.ActivityMainBinding
 import timber.log.Timber
-
+//bundle keys
+const val KEY_DESSERT_SOLD="dessert_sold"
+const val KEY_REVENUE="key_revenue"
+const val KEY_TIMER_SECONDS="timer_seconds_key"
 class MainActivity : AppCompatActivity(),LifecycleObserver {
+    private lateinit var dessertTimer: DessertTimer//initialize the dessertTimer class
 
-     private var revenue = 0
+    private var revenue = 0
 private var dessertsSold =0
     // Contains all the views
     private lateinit var binding: ActivityMainBinding
@@ -58,6 +62,15 @@ private var dessertsSold =0
             onDessertClicked()
         }
 
+        dessertTimer= DessertTimer(this.lifecycle)
+
+if (savedInstanceState!=null){
+    //get all the game state info from the bundle set it to
+    revenue=savedInstanceState.getInt(KEY_REVENUE,0)
+    dessertsSold=savedInstanceState.getInt(KEY_DESSERT_SOLD,0)
+    dessertTimer.secondsCount=savedInstanceState.getInt(KEY_TIMER_SECONDS,0)
+    showCurrentDessert()
+}
         // Set the TextViews to the right values
         binding.revenue = revenue
         binding.amountSold = dessertsSold
@@ -81,6 +94,8 @@ private var dessertsSold =0
         // Show the next dessert
         showCurrentDessert()
     }
+
+
 
     /**
      * Determine which dessert to show.
@@ -134,14 +149,28 @@ private var dessertsSold =0
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onStart() {
+    override fun onSaveInstanceState(outState: Bundle) {
+        //dessertTimer.secondsCount in the state Bundle
+        outState.putInt(KEY_REVENUE,revenue)
+        outState.putInt(KEY_DESSERT_SOLD,dessertsSold)
+        outState.putInt(KEY_TIMER_SECONDS,dessertTimer.secondsCount)
+        super.onSaveInstanceState(outState)
+        Timber.i("onSaveInstance Called")
+    }
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        Timber.i("onRestore called")
+    }
 
+    override fun onStart() {
         super.onStart()
+        dessertTimer.startTimer()
         Timber.i("onStart called")
     }
 
     override fun onResume() {
         super.onResume()
+
         Timber.i("onResume Called")
     }
 
@@ -152,6 +181,7 @@ private var dessertsSold =0
 
     override fun onStop() {
         super.onStop()
+
         Timber.i("onStop Called")
     }
 
